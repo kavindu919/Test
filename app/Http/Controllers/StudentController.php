@@ -25,7 +25,29 @@ class StudentController extends Controller
                         ->orWhere('email', 'LIKE', '%' . $search . '%');
                 })
                 ->get();
-            return response()->json(['status' => true, 'messaage' => 'Student Data Retrived Successfully'], 200);
+            return response()->json(['status' => true, 'messaage' => 'Student Data Retrived Successfully', 'data' => $data], 200);
+        } catch (\Throwable $th) {
+            Log::error('error happend', ['error' => $th->getMessage()]);
+            return response()->json(['status' => false, 'messaage' => 'Faild to Fetch Data'], 500);
+        }
+    }
+    /**
+     * Function for get single students details
+     */
+    public function getSingleStudent(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:students,id',
+        ]);
+        $student = StudentModel::where('id', $request->id)->first();
+        if (!$student) {
+            return response()->json(['status' => false, 'messaage' => 'Faild to Find Record'], 404);
+        }
+        try {
+            $data = StudentModel::select('first_name', 'last_name', 'email', 'phone', 'gender', 'birthdate')
+                ->where('id', $request->id)
+                ->get();
+            return response()->json(['status' => true, 'messaage' => 'Student Data Retrived Successfully', 'data' => $data], 200);
         } catch (\Throwable $th) {
             Log::error('error happend', ['error' => $th->getMessage()]);
             return response()->json(['status' => false, 'messaage' => 'Faild to Fetch Data'], 500);
